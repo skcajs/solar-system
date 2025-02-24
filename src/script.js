@@ -11,10 +11,15 @@ document.body.appendChild(renderer.domElement);
 
 /* Scene Setup */
 
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight,
+};
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,
-  window.innerWidth / window.innerHeight,
+  sizes.width / sizes.height,
   0.1,
   1000
 );
@@ -22,16 +27,16 @@ const camera = new THREE.PerspectiveCamera(
 let gap = 20;
 
 // Environment Map
-// const rgbeLoader = new RGBELoader();
-// rgbeLoader.load(
-//   "static/textures/environmentMap/HDR_hazy_nebulae.hdr",
-//   (environmentMap) => {
-//     environmentMap.mapping = THREE.EquirectangularReflectionMapping;
+const rgbeLoader = new RGBELoader();
+rgbeLoader.load(
+  "textures/environmentMap/4k_hazy_nebulae.hdr",
+  (environmentMap) => {
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping;
 
-//     scene.background = environmentMap;
-//     scene.environment = environmentMap;
-//   }
-// );
+    scene.background = environmentMap;
+    scene.environment = environmentMap;
+  }
+);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -39,7 +44,6 @@ controls.enableDamping = true;
 // Textures
 const textureLoader = new THREE.TextureLoader();
 
-const starMapTexture = textureLoader.load("textures/bodies/stars.jpg");
 const sunTexture = textureLoader.load("textures/bodies/sun.jpg");
 const mercuryTexture = textureLoader.load("textures/bodies/mercury.jpg");
 const venusTexture = textureLoader.load("textures/bodies/venus_surface.jpg");
@@ -50,7 +54,6 @@ const saturnTexture = textureLoader.load("textures/bodies/saturn.jpg");
 const uranusTexture = textureLoader.load("textures/bodies/uranus.jpg");
 const neptuneTexture = textureLoader.load("textures/bodies/neptune.jpg");
 
-starMapTexture.colorSpace = THREE.SRGBColorSpace;
 sunTexture.colorSpace = THREE.SRGBColorSpace;
 mercuryTexture.colorSpace = THREE.SRGBColorSpace;
 venusTexture.colorSpace = THREE.SRGBColorSpace;
@@ -62,14 +65,6 @@ uranusTexture.colorSpace = THREE.SRGBColorSpace;
 neptuneTexture.colorSpace = THREE.SRGBColorSpace;
 
 // Geometry
-
-const starMapGeometry = new THREE.SphereGeometry(640, 128, 64);
-const starMapMaterial = new THREE.MeshBasicMaterial({
-  map: starMapTexture,
-  side: THREE.BackSide,
-});
-const starMap = new THREE.Mesh(starMapGeometry, starMapMaterial);
-scene.add(starMap);
 
 const sunGeometry = new THREE.SphereGeometry(55, 128, 64);
 const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
@@ -118,13 +113,6 @@ scene.add(neptune);
 
 const planets = new Map([
   [
-    // sun,
-    // {
-    //   earth_days: 25.38,
-    //   orbit_days: 0,
-    //   earth_years: 0,
-    //   orbit_radius: 0,
-    // },
     mercury,
     {
       earth_days: 58.67,
@@ -236,3 +224,17 @@ function orbitPlanets() {
     planet.position.z = orbitRadius * Math.sin(time * orbitSpeed);
   });
 }
+
+window.addEventListener("resize", () => {
+  // Update sizes
+  sizes.width = window.innerWidth;
+  sizes.height = window.innerHeight;
+
+  // Update camera
+  camera.aspect = sizes.width / sizes.height;
+  camera.updateProjectionMatrix();
+
+  // Update renderer
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
